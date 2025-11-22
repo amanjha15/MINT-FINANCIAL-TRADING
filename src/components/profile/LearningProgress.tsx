@@ -5,50 +5,53 @@ import { BookOpen, CheckCircle, Trophy, Target } from "lucide-react";
 import { useUserProgress, useUserAchievements, useUserMissions } from "@/hooks/useSupabase";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
 interface LearningProgressProps {
   userId: string;
 }
-
-export const LearningProgress = ({ userId }: LearningProgressProps) => {
-  const { data: progress = [], isLoading: progressLoading } = useUserProgress(userId);
-  const { data: achievements = [], isLoading: achievementsLoading } = useUserAchievements(userId);
-  const { data: missions = [], isLoading: missionsLoading } = useUserMissions(userId);
-  
-  const { data: practiceSessions = [], isLoading: sessionsLoading } = useQuery({
+export const LearningProgress = ({
+  userId
+}: LearningProgressProps) => {
+  const {
+    data: progress = [],
+    isLoading: progressLoading
+  } = useUserProgress(userId);
+  const {
+    data: achievements = [],
+    isLoading: achievementsLoading
+  } = useUserAchievements(userId);
+  const {
+    data: missions = [],
+    isLoading: missionsLoading
+  } = useUserMissions(userId);
+  const {
+    data: practiceSessions = [],
+    isLoading: sessionsLoading
+  } = useQuery({
     queryKey: ["practiceSessions", userId],
     queryFn: async () => {
       if (!userId) return [];
-      const { data } = await supabase
-        .from("practice_sessions")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(5);
+      const {
+        data
+      } = await supabase.from("practice_sessions").select("*").eq("user_id", userId).order("created_at", {
+        ascending: false
+      }).limit(5);
       return data || [];
     },
-    enabled: !!userId,
+    enabled: !!userId
   });
-
   const loading = progressLoading || achievementsLoading || missionsLoading || sessionsLoading;
-
   if (loading) {
     return <div className="text-center text-muted-foreground">Loading learning data...</div>;
   }
-
-  const completedLessons = progress.filter((p) => p.completed).length;
+  const completedLessons = progress.filter(p => p.completed).length;
   const totalLessons = progress.length;
-  const completionRate = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
-
-  return (
-    <div className="space-y-6">
+  const completionRate = totalLessons > 0 ? completedLessons / totalLessons * 100 : 0;
+  return <div className="space-y-6">
       {/* Learning Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-6 bg-card border-border/20">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-primary" />
-            </div>
+            
             <div>
               <p className="text-sm text-muted-foreground">Lessons Completed</p>
               <p className="text-2xl font-bold text-foreground">
@@ -61,9 +64,7 @@ export const LearningProgress = ({ userId }: LearningProgressProps) => {
 
         <Card className="p-6 bg-card border-border/20">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
-              <Trophy className="w-6 h-6 text-accent" />
-            </div>
+            
             <div>
               <p className="text-sm text-muted-foreground">Achievements Unlocked</p>
               <p className="text-2xl font-bold text-foreground">{achievements.length}</p>
@@ -73,9 +74,7 @@ export const LearningProgress = ({ userId }: LearningProgressProps) => {
 
         <Card className="p-6 bg-card border-border/20">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
-              <Target className="w-6 h-6 text-success" />
-            </div>
+            
             <div>
               <p className="text-sm text-muted-foreground">Practice Sessions</p>
               <p className="text-2xl font-bold text-foreground">
@@ -91,23 +90,12 @@ export const LearningProgress = ({ userId }: LearningProgressProps) => {
         <h3 className="text-xl font-sentient font-bold text-foreground mb-4">
           Lesson Progress
         </h3>
-        {progress.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">
+        {progress.length === 0 ? <p className="text-muted-foreground text-center py-8">
             No lessons started yet. Begin your learning journey today!
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {progress.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between p-4 rounded-lg bg-background border border-border/40"
-              >
+          </p> : <div className="space-y-3">
+            {progress.map(item => <div key={item.id} className="flex items-center justify-between p-4 rounded-lg bg-background border border-border/40">
                 <div className="flex items-center gap-4">
-                  {item.completed ? (
-                    <CheckCircle className="w-5 h-5 text-success" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-muted" />
-                  )}
+                  {item.completed ? <CheckCircle className="w-5 h-5 text-success" /> : <div className="w-5 h-5 rounded-full border-2 border-muted" />}
                   <div>
                     <p className="font-semibold text-foreground">
                       {item.lessons?.title}
@@ -122,15 +110,11 @@ export const LearningProgress = ({ userId }: LearningProgressProps) => {
                     </div>
                   </div>
                 </div>
-                {item.score !== null && (
-                  <Badge className="bg-primary text-primary-foreground">
+                {item.score !== null && <Badge className="bg-primary text-primary-foreground">
                     Score: {item.score}%
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                  </Badge>}
+              </div>)}
+          </div>}
       </Card>
 
       {/* Achievements */}
@@ -138,17 +122,10 @@ export const LearningProgress = ({ userId }: LearningProgressProps) => {
         <h3 className="text-xl font-sentient font-bold text-foreground mb-4">
           Recent Achievements
         </h3>
-        {achievements.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">
+        {achievements.length === 0 ? <p className="text-muted-foreground text-center py-8">
             No achievements unlocked yet. Keep learning to earn badges!
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {achievements.slice(0, 6).map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-4 p-4 rounded-lg bg-background border border-border/40"
-              >
+          </p> : <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {achievements.slice(0, 6).map(item => <div key={item.id} className="flex items-center gap-4 p-4 rounded-lg bg-background border border-border/40">
                 <div className="text-4xl">{item.achievements?.icon}</div>
                 <div>
                   <p className="font-semibold text-foreground">
@@ -161,10 +138,8 @@ export const LearningProgress = ({ userId }: LearningProgressProps) => {
                     +{item.achievements?.xp_reward} XP
                   </p>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              </div>)}
+          </div>}
       </Card>
 
       {/* Missions Progress */}
@@ -172,26 +147,17 @@ export const LearningProgress = ({ userId }: LearningProgressProps) => {
         <h3 className="text-xl font-sentient font-bold text-foreground mb-4">
           Mission Status
         </h3>
-        {missions.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">
+        {missions.length === 0 ? <p className="text-muted-foreground text-center py-8">
             No missions yet. Check the missions page to get started!
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {missions.map((item) => (
-              <div
-                key={item.id}
-                className="p-4 rounded-lg bg-background border border-border/40"
-              >
+          </p> : <div className="space-y-3">
+            {missions.map(item => <div key={item.id} className="p-4 rounded-lg bg-background border border-border/40">
                 <div className="flex items-center justify-between mb-2">
                   <p className="font-semibold text-foreground">
                     {item.missions?.title}
                   </p>
-                  {item.completed && (
-                    <Badge className="bg-success text-success-foreground">
+                  {item.completed && <Badge className="bg-success text-success-foreground">
                       Completed
-                    </Badge>
-                  )}
+                    </Badge>}
                 </div>
                 <p className="text-sm text-muted-foreground mb-3">
                   {item.missions?.description}
@@ -203,18 +169,10 @@ export const LearningProgress = ({ userId }: LearningProgressProps) => {
                       {item.progress || 0} / {item.missions?.target_value}
                     </span>
                   </div>
-                  <Progress
-                    value={
-                      ((item.progress || 0) / (item.missions?.target_value || 1)) * 100
-                    }
-                    className="h-2"
-                  />
+                  <Progress value={(item.progress || 0) / (item.missions?.target_value || 1) * 100} className="h-2" />
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              </div>)}
+          </div>}
       </Card>
-    </div>
-  );
+    </div>;
 };

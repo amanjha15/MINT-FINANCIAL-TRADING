@@ -116,11 +116,11 @@ const Auth = () => {
             <form onSubmit={handleSignIn} className="space-y-4">
               <div>
                 <Label htmlFor="signin-email" className="text-gray-700">Email</Label>
-                <Input id="signin-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required className="bg-gray-100 border-gray-200" />
+                <Input id="signin-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required className="bg-gray-100 border-gray-200 text-black" />
               </div>
-              <div>
+              <div className="bg-slate-50 text-neutral-950">
                 <Label htmlFor="signin-password" className="text-gray-700">Password</Label>
-                <Input id="signin-password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required className="bg-gray-100 border-gray-200" />
+                <Input id="signin-password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required className="bg-gray-100 border-gray-200 text-black" />
               </div>
               <Button type="submit" className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-lg h-12 font-medium" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -133,11 +133,11 @@ const Auth = () => {
             <form onSubmit={handleSignUp} className="space-y-4">
               <div>
                 <Label htmlFor="signup-email" className="text-gray-700">Email</Label>
-                <Input id="signup-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required className="bg-gray-100 border-gray-200" />
+                <Input id="signup-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required className="bg-gray-100 border-gray-200 text-black" />
               </div>
               <div>
                 <Label htmlFor="signup-password" className="text-gray-700">Password</Label>
-                <Input id="signup-password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="bg-gray-100 border-gray-200" />
+                <Input id="signup-password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="bg-gray-100 border-gray-200 text-black" />
               </div>
               <Button type="submit" className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-lg h-12 font-medium" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

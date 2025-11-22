@@ -449,3 +449,4 @@ For issues or questions, please contact the development team.
 
 ---
 
+Built with ❤️ using [Lovable](https://lovable.dev)

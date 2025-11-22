@@ -4,8 +4,8 @@ import { CheckCircle2, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 const steps = [{
   step: "01",
-  title: "Take the Assessment",
-  description: "Quick quiz to understand your current financial knowledge and goals. We personalize your journey from day one.",
+  title: "demystify finance using the coach",
+  description: "send financial pdfs or just ask doubts and our financial coach is there for you. It will help you learn and analyse stock market data.",
   features: ["5-minute setup", "No credit card", "Instant results"]
 }, {
   step: "02",
