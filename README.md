@@ -9,7 +9,7 @@
 
 ## 🌟 Overview
 
-A comprehensive financial education platform that transforms complex stock trading concepts into engaging, interactive learning experiences. Built with modern web technologies and powered by AI, this platform combines educational content, real-time market data, and gamification to help users become confident investors.
+A comprehensive financial education platform that transforms complex stock trading concepts into engaging, interactive learning experiences. Built with modern web technologies and powered by AI, this platform combines educational content, real time market data, and gamification to help users become confident investors.
 
 ## ✨ Key Features
 
