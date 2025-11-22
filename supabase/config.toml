@@ -1,0 +1,16 @@
+project_id = "gswmgiupvbfcaprogamj"
+
+[functions.fetch-stock-data]
+verify_jwt = false
+
+[functions.fetch-historical-data]
+verify_jwt = false
+
+[functions.finnhub-webhook]
+verify_jwt = false
+
+[functions.search-stocks]
+verify_jwt = false
+
+[functions.ai-coach-chat]
+verify_jwt = false

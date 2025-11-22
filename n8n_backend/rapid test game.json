@@ -1,0 +1,257 @@
+{
+  "name": "rapid test game",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rapidtestgame",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -800,
+        32
+      ],
+      "id": "e8901d9f-f702-4ef1-baaa-305dea7d9024",
+      "name": "Webhook1",
+      "webhookId": "104e9eb1-7b78-49c5-8723-275c7fbebf09"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4fe2503e-c794-485f-a7ca-f7c7871f710a",
+              "name": "body.stock_symbol",
+              "value": "={{ $json.body.stock_symbol }}",
+              "type": "string"
+            },
+            {
+              "id": "f581661d-4819-4688-aac1-e0628790a789",
+              "name": "body.query",
+              "value": "={{ $json.body.query }}",
+              "type": "string"
+            },
+            {
+              "id": "6ccd3fbc-af4a-4d38-b4ea-fb675f4a424f",
+              "name": "body.user_email",
+              "value": "={{ $json.body.user_email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -592,
+        32
+      ],
+      "id": "8e9463d7-a63d-4678-bc3e-616d87523160",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=stock:{{ $('Edit Fields1').item.json.body.stock_symbol }}\n\nuser's prediction:{{ $('Webhook1').item.json.body.query }}\n\nml model result:\n<prediction> = {{ $('ml_model_stock1').item.json.prediction }}\n<verdict> = {{ $('ml_model_stock1').item.json.verdict }}\n<confidence> = {{ $('ml_model_stock1').item.json.confidence }}\n<net_strength> = {{ $('ml_model_stock1').item.json.net_strength }}\n\nnews_analyser result:\n{{ $json.formatted }}",
+        "options": {
+          "systemMessage": "=You are the Rapid Test Game Evaluation Agent.\n\nYour ONLY job is to check if the user’s prediction matches the ML model’s prediction for the stock.\n\nInputs you will receive:\n- The stock symbol\n- The user’s prediction (their guess)\n- The ML model output:\n    • prediction (raw value)\n    • verdict (increase / decrease / neutral)\n    • confidence\n    • net_strength\n- News sentiment (ignore unless needed)\n- User email (ignore)\n\nEvaluation Rules:\n1. If the model verdict is \"increase\" (or synonyms: up, rise, going up, bullish)  \n   AND the user predicts an upward movement → output: point\n\n2. If the model verdict is \"decrease\" (or synonyms: down, fall, going down, bearish)  \n   AND the user predicts a downward movement → output: point\n\n3. If the model verdict is \"neutral\"  \n   AND the user predicts neutral / sideways / no major change → output: point\n\n4. Otherwise → output: no point\n\nImportant:\n- Matching must be case-insensitive.\n- Synonyms are allowed.\n- Ignore everything except direction match.\n- DO NOT provide analysis.\n- DO NOT provide explanations.\n- DO NOT repeat the model output or user text.\n- DO NOT add punctuation.\n\nYour final output MUST be exactly one of the following:\npoint\nno point\n\nNothing else.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        256,
+        112
+      ],
+      "id": "0ebf9f63-3be4-4cb1-b527-ac38cac2fcb9",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        256,
+        352
+      ],
+      "id": "11cd7d81-58da-4af2-8874-0ccee1972338",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7BDuTCs2wcPJ3bui",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        624,
+        144
+      ],
+      "id": "284238f1-b78d-4039-ac5b-857c8f47488f",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:1234/predict_stock",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "symbol",
+              "value": "={{ $json.body.stock_symbol }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -336,
+        0
+      ],
+      "id": "4f8d7b69-1320-47de-b3ae-7e149ac1e727",
+      "name": "ml_model_stock1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:9876/news_sentiment",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "symbol",
+              "value": "={{ $json.symbol }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -112,
+        -16
+      ],
+      "id": "0b3a86b0-457a-4169-bb37-d87c39960f2f",
+      "name": "news_analyser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get input (array of articles)\nconst articles = items[0].json.articles || [];\n\n// If no articles\nif (!articles.length) {\n  return [{\n    json: {\n      formatted: \"No news articles available for this stock.\"\n    }\n  }];\n}\n\n// Count sentiment categories\nlet bullish = 0, bearish = 0, neutral = 0;\n\narticles.forEach(a => {\n  const label = (a.overall_sentiment_label || \"\").toLowerCase();\n  if (label.includes(\"bullish\")) bullish++;\n  else if (label.includes(\"bearish\")) bearish++;\n  else neutral++;\n});\n\n// Build formatted output\nlet text = `📰 **News Sentiment Summary**\\n`;\ntext += `Bullish: ${bullish} | Neutral: ${neutral} | Bearish: ${bearish}\\n\\n`;\ntext += `📅 **Latest Articles (Most Recent First)**\\n\\n`;\n\narticles.forEach(a => {\n  text += `• **${a.title}**\\n`;\n  text += `  - Date: ${a.date}\\n`;\n  text += `  - Sentiment: ${a.overall_sentiment_label} (Score: ${a.overall_sentiment_score})\\n`;\n  text += `  - Summary: ${a.summary}\\n`;\n  text += `  - Source: ${a.url}\\n\\n`;\n});\n\n// Return formatted text\nreturn [{\n  json: {\n    formatted: text.trim()\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        48
+      ],
+      "id": "dcfe9313-1436-42ac-8fe4-0410ddb84b94",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "ml_model_stock1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ml_model_stock1": {
+      "main": [
+        [
+          {
+            "node": "news_analyser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "news_analyser": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "90014436-5e40-465b-b435-150b0b04e7b7",
+  "meta": {
+    "instanceId": "158668228233a43e12ced780e7c9d38bd24fdae68d81f9217aa3237706c4a1fb"
+  },
+  "id": "EaVTaLBqx3H7A5Yz",
+  "tags": []
+}

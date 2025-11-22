@@ -1,0 +1,579 @@
+{
+  "name": "financial coach",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "myfinancialAI",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -464,
+        -352
+      ],
+      "id": "dc3dc771-151a-47f5-8dd3-656d7f418b1f",
+      "name": "Webhook",
+      "webhookId": "104e9eb1-7b78-49c5-8723-275c7fbebf09"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.originalMessage }}\n\n{{ $json.text }}\n",
+        "options": {
+          "systemMessage": "=you are a financial chatbot.\n\nSYSTEM PROMPT — Financial Analyzer Agent\n\nRole:\nYou are FinSense AI, an intelligent financial analysis assistant.\nYour purpose is to give clear, accurate, data-driven insights using the tools provided to you.\n\nYour Capabilities\n\nYou have direct access to specialized tools that help you answer questions:\n\nWeb Search Tool\n– To gather the latest news, financial updates, macro events, or company info.\n– Use when the user asks for up-to-date or external information.\n\nStock Prediction Model Tool (ml_model)\n– Takes a stock symbol and returns ML-based directional forecast + SHAP explanation.\n– Use when the user wants to know if a stock may go up or down.\n– Do not invent results; always call the tool.\n\nNews Sentiment Model Tool (news_sentiment)\n– Takes a stock symbol and returns aggregated sentiment from the last few days.\n– Use when the user asks about sentiment, recent news, or market mood around a stock.\n\nYour Core Behaviors\n\nAlways give structured, concise, and actionable financial insights.\n\nUse tools when they provide more accurate or real-time data.\n\nWhen uncertain, you must say so and ask for clarification—never hallucinate.\n\nProvide risk disclaimers when users ask for investment advice.\n\nTailor answers to both beginners and advanced users depending on context.\n\nProvide reasoning and break down insights clearly.\n\nIf combining multiple tools makes the answer stronger, do so.\n\nOutput Style\n\nBe analytical but easy to understand.\n\nUse bullet points and sections where helpful.\n\nSummaries should be simple, but keep the technical depth when needed.\n\nWhen using ML predictions, always interpret the results (e.g., \"slight downward pressure\", \"bullish signals\").\n\nSafety Rules\n\nNever provide guaranteed returns, insider info, or illegal advice.\n\nNever fabricate financial data, stock prices, or company fundamentals.\n\nIf the user asks for something unsafe, politely refuse and offer a safe alternative.\n\nPrimary Goal\n\nProvide the most accurate financial insight possible using your tools:\nML predictions + sentiment analysis + search + reasoning.\n\nBe reliable, smart, fast, and extremely helpful—like a professional analyst augmented with AI.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        720,
+        -528
+      ],
+      "id": "22f6f7f8-f51a-4ce6-b042-849810faf3bf",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        32,
+        -112
+      ],
+      "id": "8c39e59a-61be-446f-8ada-e42afa95759b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "7BDuTCs2wcPJ3bui",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Edit Fields').item.json.body.sender }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        192,
+        -112
+      ],
+      "id": "ecb9cbaa-8965-45e7-bd40-720dfccc55bc",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {
+          "max_results": 5,
+          "include_domains": [],
+          "auto_parameters": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Auto_Parameters', `define parameters fir accurate and relevant context`, 'boolean') }}"
+        }
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        752,
+        -80
+      ],
+      "id": "0a3c12eb-8f6c-457d-b8d0-8ec0ba345061",
+      "name": "web_search",
+      "credentials": {
+        "tavilyApi": {
+          "id": "EPncqw3NT1YuoWyH",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "tells 5 day trend of the stock\n",
+        "method": "POST",
+        "url": "=http://host.docker.internal:1234/predict_stock",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "symbol",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        624,
+        -80
+      ],
+      "id": "8c2ab9db-5c73-4be9-ae75-323120b0b4a6",
+      "name": "ml_model"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8f909022-746c-4402-a61f-a96f97b79e47",
+              "leftValue": "={{ $json.body.files }}",
+              "rightValue": ".pdf",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        -544
+      ],
+      "id": "203fcae3-100c-4604-9107-455563aa5f6d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1152,
+        -480
+      ],
+      "id": "b99adf76-3f5c-4581-94fa-371e6a3c9207",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "630ca189-9328-4df7-a947-603d047bdca3",
+              "name": "body.sender",
+              "value": "={{ $json.body.sender }}",
+              "type": "string"
+            },
+            {
+              "id": "492a5f00-966f-4b91-a6dc-7a2e1fbc78ea",
+              "name": "body.originalMessage",
+              "value": "={{ $json.body.originalMessage }}",
+              "type": "string"
+            },
+            {
+              "id": "9434c97b-e324-47ea-b216-4adad2ef2b9a",
+              "name": "body.files",
+              "value": "={{ $json.body.files }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        -432
+      ],
+      "id": "e7cf4e98-9b4f-4fa7-89ac-1aba50dcf016",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.exa.ai/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 97e0c942-d9b4-4a7b-ae50-b1989a161647"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "Find reports on recent GST policy changes in India"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1776,
+        304
+      ],
+      "id": "5f8b8245-5b6a-4099-af16-4be74bb73e6b",
+      "name": "exa search"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -672
+      ],
+      "id": "caf260d7-7095-48e4-9bbf-30a2542818d0",
+      "name": "Extract from File",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.files[0].url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        192,
+        -608
+      ],
+      "id": "d8ff2e9a-6f48-48c2-8c19-2d0b02edd1b9",
+      "name": "get file",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        544,
+        -544
+      ],
+      "id": "43611e8d-b1f1-45c5-98de-8234cb403861",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "📌 Example n8n HTTP Node\n\nMethod: DELETE\nURL:\n\nhttps://YOUR_PROJECT_REF.supabase.co/storage/v1/object/my-bucket/folder/image.png\n\n\nHeaders:\n\napikey: {{ $env.SUPABASE_SERVICE_ROLE }}\nAuthorization: Bearer {{ $env.SUPABASE_SERVICE_ROLE }}\nContent-Type: application/json\n\n📌 Example using fetch (JavaScript)\nawait fetch(\n  \"https://YOUR_PROJECT_REF.supabase.co/storage/v1/object/my-bucket/folder/image.png\",\n  {\n    method: \"DELETE\",\n    headers: {\n      \"apikey\": SUPABASE_SERVICE_ROLE,\n      \"Authorization\": `Bearer ${SUPABASE_SERVICE_ROLE}`\n    }\n  }\n);\n",
+        "height": 496,
+        "width": 1120
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        -480
+      ],
+      "id": "dd0fb457-8888-4837-a080-eeefa3058413",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:1234/predict_stock",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "symbol",
+              "value": "=aapl"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1776,
+        512
+      ],
+      "id": "a81bc5cf-6754-499e-8367-a43b31033032",
+      "name": "ml_model_stock"
+    },
+    {
+      "parameters": {
+        "toolDescription": "//write a description for this tool",
+        "method": "POST",
+        "url": "http://host.docker.internal:9876/news_sentiment",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "symbol",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        1040,
+        -80
+      ],
+      "id": "a0bd029f-fccc-4bde-91b3-0bd4b9629711",
+      "name": "news_sentiment"
+    },
+    {
+      "parameters": {
+        "content": "## write descriptions for the tools in their ",
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        720,
+        80
+      ],
+      "id": "7b60b9ea-beae-48a0-b4c1-6ad2ca8b95fa",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## write agent system prompt",
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        -752
+      ],
+      "id": "8e709fcd-49c6-437e-b62e-67efd3e48ba6",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "increase the persons confidence by telling him how good their thinking is.\n\ni can see this"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        -192
+      ],
+      "id": "2699026a-7992-4d81-b642-4099052e7d58",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## write a code node to get the final verdict of ml output into server "
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        96
+      ],
+      "id": "f0a585c6-754c-44a6-89a7-aa40b1b6a8ad",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:9876/news_sentiment",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "symbol",
+              "value": "=aapl"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        944,
+        560
+      ],
+      "id": "b8209870-94de-4c1b-a7cb-0afc54bf70b3",
+      "name": "news_analyser1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "web_search": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ml_model": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "get file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "news_sentiment": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "af340dfc-6ba3-497f-b4cc-029f3310a2e9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "158668228233a43e12ced780e7c9d38bd24fdae68d81f9217aa3237706c4a1fb"
+  },
+  "id": "T7bHeku5CdDX0Ji8",
+  "tags": []
+}
